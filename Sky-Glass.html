@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sky-Glass // orgkamolbek</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;500;700&display=swap');
+
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --accent-color: #38bdf8;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg-gradient);
+            color: #fff;
+            font-family: 'Ubuntu', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            transition: background 1s ease;
+        }
+
+        /* Orqa fondagi harakatlanuvchi atmosfera doiralari */
+        .ambient-light {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: rgba(56, 189, 248, 0.15);
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 1;
+            top: 10%; left: 10%;
+            animation: float 8s infinite alternate ease-in-out;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 50px) scale(1.1); }
+        }
+
+        /* Oynasimon ob-havo kartasi (Glassmorphism) */
+        .weather-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 40px;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        /* Shahar tanlash menyusi */
+        .city-select {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-size: 1rem;
+            outline: none;
+            cursor: pointer;
+            width: 100%;
+            font-family: inherit;
+            margin-bottom: 30px;
+            transition: 0.3s;
+        }
+
+        .city-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+        }
+
+        .city-select option {
+            background: #111827;
+            color: #fff;
+        }
+
+        .temp-display {
+            font-size: 5rem;
+            font-weight: 700;
+            margin: 10px 0;
+            background: linear-gradient(180deg, #fff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-text {
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        /* Qo'shimcha ma'lumotlar bloki */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 35px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 25px;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 0.8rem;
+            opacity: 0.3;
+            letter-spacing: 1px;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-light" id="ambientGlow"></div>
+
+    <div class="weather-card">
+        <select class="city-select" id="citySelector" onchange="updateWeather()">
+            <option value="tashkent">Toshkent</option>
+            <option value="samarkand">Samarqand</option>
+            <option value="london">London</option>
+            <option value="dubai">Dubay</option>
+        </select>
+
+        <div class="status-text" id="weatherStatus">Quyoshli</div>
+        <div class="temp-display" id="tempDisplay">+32°C</div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">NAMLIK</div>
+                <div class="info-value" id="humidityVal">24%</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">SHOMOL</div>
+                <div class="info-value" id="windVal">4.2 m/s</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">WEATHER_NODE // orgkamolbek // 2026</div>
+
+    <script>
+        // Shaharlar uchun ob-havo ma'lumotlari bazasi (Simulyatsiya)
+        const weatherData = {
+            tashkent: { temp: "+32°C", status: "Quyoshli", humidity: "24%", wind: "4.2 m/s", color: "rgba(245, 158, 11, 0.2)", bg: "linear-gradient(135deg, #1e1b4b 0%, #7c2d12 100%)" },
+            samarkand: { temp: "+29°C", status: "Yengil shamol", humidity: "30%", wind: "6.1 m/s", color: "rgba(14, 165, 233, 0.2)", bg: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)" },
+            london: { temp: "+14°C", status: "Yomg'irli", humidity: "88%", wind: "8.5 m/s", color: "rgba(148, 163, 184, 0.2)", bg: "linear-gradient(135deg, #0f172a 0%, #334155 100%)" },
+            dubai: { temp: "+41°C", status: "Jazirama issiq", humidity: "12%", wind: "2.0 m/s", color: "rgba(239, 68, 68, 0.2)", bg: "linear-gradient(135deg, #451a03 0%, #7c2d12 100%)" }
+        };
+
+        function updateWeather() {
+            const selector = document.getElementById('citySelector');
+            const selectedCity = selector.value;
+            const data = weatherData[selectedCity];
+
+            // Ma'lumotlarni ekranga chiqarish
+            document.getElementById('tempDisplay').textContent = data.temp;
+            document.getElementById('weatherStatus').textContent = data.status;
+            document.getElementById('humidityVal').textContent = data.humidity;
+            document.getElementById('windVal').textContent = data.wind;
+
+            // Orqa fon va yorug'lik effektini ob-havoga qarab o'zgartirish
+            document.body.style.background = data.bg;
+            
+            const glow = document.getElementById('ambientGlow');
+            glow.style.background = data.color;
+        }
+
+        // Birinchi marta ishga tushirish
+        updateWeather();
+    </script>
+</body>
+</html>
